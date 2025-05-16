@@ -1,12 +1,24 @@
 # Leprechaun Protocol Liquidation Bot
 
-A TypeScript-based liquidation bot for the Leprechaun Protocol that uses viem for blockchain interactions. This bot automatically monitors the protocol for under-collateralized positions, assesses their profitability, and executes liquidations when profitable.
+A minimal-requirement liquidation bot for the Leprechaun Protocol that uses viem for blockchain interactions. This bot automatically monitors the protocol for under-collateralized positions, assesses their profitability, and executes liquidations when profitable.
+
+Designed for low cost, low overhead and fast warm starts using Vercel Functions.
 
 ## Features
 
-- 🔍 **Automated Scanning**: Continuously scans for liquidatable positions
-- 💰 **Profitability Assessment**: Calculates potential profit before executing liquidations
-- ⚡ **Gas Optimization**: Monitors gas prices and skips liquidations when gas is too high
+- 🔍 **Automated Scanning**: The bot periodically scans the protocol for under-collateralized positions using the Lens contract's `getLiquidatablePositions` function.
+- 💰 **Profitability Assessment**: For each liquidatable position, the bot calculates whether executing the liquidation would be profitable, considering:
+  - The amount of synthetic tokens needed to repay the debt
+  - The amount of collateral that would be received
+  - The protocol fee
+  - The liquidation discount
+  - The gas cost of the transaction
+  - The minimum profit threshold configured
+- ⚡ **Execution**: For positions that are determined to be profitable, the bot:
+  - Checks if the liquidator has sufficient synthetic tokens
+  - Approves the position manager to spend the tokens if necessary
+  - Executes the liquidation by calling the liquidate function
+  - Waits for the transaction to be mined and verifies the success
 - 📊 **Logging**: Comprehensive logging of all operations
 - 🛡️ **Error Handling**: Robust error handling to ensure reliability
 - 🔄 **Batch Processing**: Process multiple liquidations in sequence
@@ -15,7 +27,7 @@ A TypeScript-based liquidation bot for the Leprechaun Protocol that uses viem fo
 ## Prerequisites
 
 - Node.js v18 or later
-- Ethereum private key with some ETH for gas
+- Ethereum private key with some ETH on base for gas
 - Synthetic tokens for repaying debt during liquidations
 
 ## Installation
@@ -96,7 +108,7 @@ npm run liquidate -- --position-id 123
 
 ## Architecture
 
-The bot consists of several key components:
+The bot consists of the following key components:
 
 1. **Scanner**: Identifies liquidatable positions and calculates profitability
 2. **Liquidator**: Executes liquidations for profitable positions
@@ -127,13 +139,8 @@ This bot can be deployed as a Vercel Function:
 
 - **Private Key Security**: Never commit your private key to version control
 - **Fund Management**: Only keep enough funds for active liquidations
-- **Gas Management**: Configure proper gas limits to avoid failed transactions
-- **Error Handling**: The bot includes comprehensive error handling to prevent issues
+- **Gas Management**: Configure proper ETH gas limits to avoid failed transactions
 
 ## License
 
 MIT
-
-## Credits
-
-Built for the Leprechaun Protocol
