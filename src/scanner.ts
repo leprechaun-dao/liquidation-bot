@@ -1,8 +1,8 @@
-import { publicClient, botConfig } from '../utils/config';
-import { LensABI, PositionManagerABI } from '../abi';
-import { PositionDetails, LiquidationReturns, ProfitabilityAssessment } from '../types';
-import logger, { logPositionDetails, logLiquidationReturns, logProfitability } from '../utils/logger';
-import { formatUsdValue } from '../utils/tokens';
+import { publicClient, botConfig } from './utils/config';
+import { LensABI, PositionManagerABI } from './abi';
+import { PositionDetails, LiquidationReturns, ProfitabilityAssessment } from './types';
+import logger, { logPositionDetails, logLiquidationReturns, logProfitability } from './utils/logger';
+import { formatUsdValue } from './utils/tokens';
 
 export class LiquidationScanner {
   private lensAddress: string;
@@ -33,7 +33,19 @@ export class LiquidationScanner {
         args: [BigInt(skip), BigInt(limit)],
       });
       
-      const { positions, total } = result as { positions: PositionDetails[]; total: bigint };
+      // // Debug log the raw result
+      // logger.debug(`Raw contract response: ${JSON.stringify(result, (key, value) =>
+      //   typeof value === 'bigint' ? value.toString() : value
+      // )}`);
+      
+      // The contract returns an array with [positions, total]
+      const [positions, total] = result as [PositionDetails[], bigint];
+      
+      // // Debug log the destructured values
+      // logger.debug(`Destructured positions: ${JSON.stringify(positions, (key, value) =>
+      //   typeof value === 'bigint' ? value.toString() : value
+      // )}`);
+      logger.debug(`Destructured total: ${total}`);
       
       logger.info(`Found ${positions.length} liquidatable positions (total: ${total})`);
       
@@ -58,9 +70,21 @@ export class LiquidationScanner {
         args: [positionId],
       });
       
-      const { syntheticAmount, collateralReceived, discount, fee } = result as LiquidationReturns;
+      // Debug log the raw result
+      logger.debug(`Raw liquidation returns: ${JSON.stringify(result, (key, value) =>
+        typeof value === 'bigint' ? value.toString() : value
+      )}`);
       
-      logLiquidationReturns({ syntheticAmount, collateralReceived, discount, fee });
+      // The contract returns an array with [syntheticAmount, collateralReceived, discount, fee]
+      const [syntheticAmount, collateralReceived, discount, fee] = result as [bigint, bigint, bigint, bigint];
+      
+      // Convert discount to percentage for logging
+      const discountPercentage = Number(discount) / 100;
+      
+      logger.debug(`Synthetic Amount: ${syntheticAmount.toString()}`);
+      logger.debug(`Collateral Received: ${collateralReceived.toString()}`);
+      logger.debug(`Discount: ${discountPercentage}%`);
+      logger.debug(`Fee: ${fee.toString()}`);
       
       return { syntheticAmount, collateralReceived, discount, fee };
     } catch (error) {
@@ -178,7 +202,7 @@ export class LiquidationScanner {
       // Calculate the value of the collateral to be received
       // We use the ratio of collateralReceived to the total collateral in the position
       // to calculate the portion of the USD value
-      const collateralValueUsd = position.collateralUsdValue * collateralReceived / position.collateralAmount;
+      const collateralValueUsd = (position.collateralUsdValue * collateralReceived) / position.collateralAmount;
       
       // Calculate estimated profit (including the liquidation discount)
       const estimatedProfitUsd = collateralValueUsd - debtValueUsd;
@@ -241,12 +265,12 @@ export class LiquidationScanner {
       );
       
       // Filter out positions that are not profitable
-      const profitableLiquidations = assessments.filter(assessment => assessment.isProfitable);
+      const profitableLiquidations = assessments.filter((assessment: ProfitabilityAssessment) => assessment.isProfitable);
       
       logger.info(`Found ${profitableLiquidations.length} profitable liquidation opportunities out of ${positions.length} liquidatable positions`);
       
       // Sort by profit in descending order
-      return profitableLiquidations.sort((a, b) => {
+      return profitableLiquidations.sort((a: ProfitabilityAssessment, b: ProfitabilityAssessment) => {
         return Number(b.estimatedProfitUsd - a.estimatedProfitUsd);
       });
     } catch (error) {

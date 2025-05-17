@@ -115,7 +115,12 @@ export async function waitForReceipt(
  * Enhances a transaction receipt with calculated costs
  */
 export function enhanceTransactionReceipt(receipt: any) {
-  const totalCostWei = receipt.gasUsed * receipt.effectiveGasPrice;
+  // Ensure both values are bigint
+  const gasUsed = BigInt(receipt.gasUsed);
+  const effectiveGasPrice = BigInt(receipt.effectiveGasPrice);
+  
+  // Calculate the total cost
+  const totalCostWei = gasUsed * effectiveGasPrice;
   
   return {
     ...receipt,

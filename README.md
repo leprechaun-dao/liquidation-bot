@@ -23,6 +23,7 @@ Designed for low cost, low overhead and fast warm starts using Vercel Functions.
 - 🛡️ **Error Handling**: Robust error handling to ensure reliability
 - 🔄 **Batch Processing**: Process multiple liquidations in sequence
 - 📱 **Vercel Compatible**: Uses viem for simplicity and performance, compatible with Vercel functions
+- 🌐 **REST API**: Includes API endpoints for integration with other systems
 
 ## Prerequisites
 
@@ -69,6 +70,9 @@ MAX_GAS_PRICE_GWEI=300
 MIN_PROFIT_USD=5
 BATCH_SIZE=10
 
+# API Security (for Vercel deployment)
+API_KEY=your-secret-api-key
+
 # Logging
 LOG_LEVEL=info
 
@@ -114,13 +118,15 @@ The bot consists of the following key components:
 2. **Liquidator**: Executes liquidations for profitable positions
 3. **Monitor**: Schedules scanning and liquidation runs
 4. **Utils**: Helper functions for blockchain interactions, logging, and configuration
+5. **API**: REST endpoints for Vercel deployment
 
 ### Key Files
 
-- `src/index.ts`: Main entry point
+- `src/index.ts`: Main entry point for running as a standalone service
 - `src/scanner.ts`: Scans for liquidatable positions
 - `src/liquidator.ts`: Executes liquidations
 - `src/monitor.ts`: Schedules and monitors liquidation runs
+- `src/api/*.ts`: Serverless function endpoints
 - `src/utils/config.ts`: Configuration loading and clients setup
 - `src/utils/logger.ts`: Logging utilities
 - `src/utils/blockchain.ts`: Blockchain interaction utilities
@@ -128,18 +134,70 @@ The bot consists of the following key components:
 
 ## Deployment as a Vercel Function
 
-This bot can be deployed as a Vercel Function:
+The bot can run both as a local service and as a serverless Vercel Function:
 
-1. Fork this repository
-2. Connect it to your Vercel account
-3. Set up environment variables in Vercel
-4. Deploy the function
+### Local Operation
+
+For continuous local operation:
+```bash
+npm start
+```
+
+### Serverless Deployment with Vercel
+
+1. Fork this repository and clone it
+2. Install Vercel CLI if not already installed:
+   ```bash
+   npm i -g vercel
+   ```
+3. Log in to Vercel:
+   ```bash
+   vercel login
+   ```
+4. Link your project:
+   ```bash
+   vercel link
+   ```
+5. Add environment variables:
+   ```bash
+   vercel env add LIQUIDATOR_PRIVATE_KEY
+   vercel env add RPC_URL
+   ```
+   Continue adding all required environment variables from the .env.example file
+   
+6. Deploy to Vercel:
+   ```bash
+   npm run deploy
+   ```
+   
+7. Once deployed, your API endpoints will be available at:
+   - `/api/health` - Health check and status endpoint
+   - `/api/liquidate?action=scan` - Scan for liquidatable positions
+   - `/api/liquidate?action=liquidate&positionId=123` - Liquidate a specific position
+   - `/api/liquidate?action=scan-and-liquidate` - Scan and execute profitable liquidations
+
+8. For security, all API requests should include your API key:
+   ```
+   https://your-vercel-url.vercel.app/api/liquidate?action=scan&apiKey=your-api-key
+   ```
+
+### Scheduled Executions (For Serverless)
+
+To run the liquidation scanner on a schedule:
+
+1. Go to your Vercel project settings
+2. Navigate to "Integrations" -> "Vercel Cron Jobs"
+3. Create a new cron job to call your liquidation endpoint
+4. Example cron pattern: `*/5 * * * *` (every 5 minutes)
+5. Endpoint URL: `https://your-vercel-url.vercel.app/api/liquidate?action=scan-and-liquidate&apiKey=your-api-key`
 
 ## Security Considerations
 
 - **Private Key Security**: Never commit your private key to version control
 - **Fund Management**: Only keep enough funds for active liquidations
 - **Gas Management**: Configure proper ETH gas limits to avoid failed transactions
+- **API Security**: Protect your API endpoints with the API_KEY environment variable
+- **Rate Limiting**: Be aware of Vercel's serverless function execution limits
 
 ## License
 

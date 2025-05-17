@@ -1,6 +1,7 @@
 import { config } from 'dotenv';
 import { createPublicClient, createWalletClient, http } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
+import { mainnet, sepolia } from 'viem/chains'; // Import common chains
 import { LiquidationBotConfig } from '../types';
 
 // Load environment variables
@@ -25,6 +26,35 @@ export const chainConfig = {
   id: Number(getOptionalEnv('CHAIN_ID', '1')), // Default to Ethereum mainnet
   rpcUrl: getRequiredEnv('RPC_URL'),
 };
+
+// Get the corresponding chain object
+function getChainFromId(chainId: number) {
+  switch (chainId) {
+    case 1:
+      return mainnet;
+    case 11155111:
+      return sepolia;
+    default:
+      // For custom or other chains, create a minimal chain object
+      return {
+        id: chainId,
+        name: `Chain ${chainId}`,
+        nativeCurrency: {
+          name: 'Ether',
+          symbol: 'ETH',
+          decimals: 18,
+        },
+        rpcUrls: {
+          default: {
+            http: [chainConfig.rpcUrl],
+          },
+          public: {
+            http: [chainConfig.rpcUrl],
+          },
+        },
+      };
+  }
+}
 
 // Create the liquidator account
 const privateKey = getRequiredEnv('LIQUIDATOR_PRIVATE_KEY');
@@ -52,20 +82,19 @@ export const botConfig: LiquidationBotConfig = {
   minProfitUsd: BigInt(getOptionalEnv('MIN_PROFIT_USD', '5')) * BigInt(10 ** 18), // Convert to wei (18 decimals)
 };
 
+// Get the chain object for our chain ID
+const chain = getChainFromId(chainConfig.id);
+
 // Create a public client for reading from the blockchain
 export const publicClient = createPublicClient({
-  chain: {
-    id: chainConfig.id,
-  },
+  chain,
   transport: http(chainConfig.rpcUrl),
 });
 
 // Create a wallet client for sending transactions
 export const walletClient = createWalletClient({
   account,
-  chain: {
-    id: chainConfig.id,
-  },
+  chain,
   transport: http(chainConfig.rpcUrl),
 });
 
