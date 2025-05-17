@@ -98,7 +98,7 @@ npm run build
 npm start
 ```
 
-![Video Demo](demo.mp4)
+![Video Demo](demo.gif)
 
 
 ### Run Just a Scanner
