@@ -4,6 +4,8 @@ A minimal-requirement liquidation bot for the Leprechaun Protocol that uses viem
 
 Designed for low cost, low overhead and fast warm starts using Vercel Functions.
 
+![Leprechaun Protocol Liquidation Bot](preview.png)
+
 ## Features
 
 - 🔍 **Automated Scanning**: The bot periodically scans the protocol for under-collateralized positions using the Lens contract's `getLiquidatablePositions` function.
