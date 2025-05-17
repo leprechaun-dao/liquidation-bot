@@ -151,7 +151,12 @@ class LiquidationExecutor {
             // Wait for the transaction to be mined
             const receipt = await (0, blockchain_1.waitForReceipt)(txHash);
             const enhancedReceipt = (0, blockchain_1.enhanceTransactionReceipt)(receipt);
-            if (enhancedReceipt.status === 'success') {
+            // Log the raw receipt status for debugging
+            logger_1.default.debug(`Raw receipt status: ${receipt.status}`);
+            logger_1.default.debug(`Enhanced receipt status: ${enhancedReceipt.status}`);
+            // Check if the transaction was successful
+            const isSuccessful = enhancedReceipt.status === 'success';
+            if (isSuccessful) {
                 logger_1.default.info(`Liquidation successful for position ${positionId}`);
                 logger_1.default.info(`Gas used: ${enhancedReceipt.gasUsed}, cost: ${enhancedReceipt.totalCostEth} ETH`);
                 logger_1.default.info(`Estimated profit: ${(0, tokens_1.formatUsdValue)(assessment.estimatedProfitUsd)}`);
@@ -166,6 +171,7 @@ class LiquidationExecutor {
             }
             else {
                 logger_1.default.error(`Liquidation failed for position ${positionId}`);
+                logger_1.default.error(`Transaction status: ${receipt.status}, Enhanced status: ${enhancedReceipt.status}`);
                 return {
                     positionId,
                     transactionHash: txHash,

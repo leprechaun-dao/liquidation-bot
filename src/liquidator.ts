@@ -202,7 +202,14 @@ export class LiquidationExecutor {
       const receipt = await waitForReceipt(txHash);
       const enhancedReceipt = enhanceTransactionReceipt(receipt);
       
-      if (enhancedReceipt.status === 'success') {
+      // Log the raw receipt status for debugging
+      logger.debug(`Raw receipt status: ${receipt.status}`);
+      logger.debug(`Enhanced receipt status: ${enhancedReceipt.status}`);
+      
+      // Check if the transaction was successful
+      const isSuccessful = enhancedReceipt.status === 'success';
+      
+      if (isSuccessful) {
         logger.info(`Liquidation successful for position ${positionId}`);
         logger.info(`Gas used: ${enhancedReceipt.gasUsed}, cost: ${enhancedReceipt.totalCostEth} ETH`);
         logger.info(`Estimated profit: ${formatUsdValue(assessment.estimatedProfitUsd)}`);
@@ -217,6 +224,7 @@ export class LiquidationExecutor {
         };
       } else {
         logger.error(`Liquidation failed for position ${positionId}`);
+        logger.error(`Transaction status: ${receipt.status}, Enhanced status: ${enhancedReceipt.status}`);
         
         return {
           positionId,

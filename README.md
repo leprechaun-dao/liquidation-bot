@@ -98,6 +98,9 @@ npm run build
 npm start
 ```
 
+![Video Demo](demo.mp4)
+
+
 ### Run Just a Scanner
 
 To scan for liquidatable positions without executing liquidations:

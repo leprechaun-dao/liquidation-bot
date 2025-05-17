@@ -109,11 +109,15 @@ function enhanceTransactionReceipt(receipt) {
     const effectiveGasPrice = BigInt(receipt.effectiveGasPrice);
     // Calculate the total cost
     const totalCostWei = gasUsed * effectiveGasPrice;
+    // Handle different status formats
+    const status = typeof receipt.status === 'bigint'
+        ? (receipt.status === 1n ? 'success' : 'failure')
+        : (receipt.status === 1 || receipt.status === 'success' ? 'success' : 'failure');
     return {
         ...receipt,
         totalCostWei,
         totalCostEth: (0, viem_1.formatEther)(totalCostWei),
-        status: receipt.status === 1n ? 'success' : 'failure',
+        status,
     };
 }
 exports.default = {
