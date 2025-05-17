@@ -2,9 +2,11 @@
 
 A minimal-requirement liquidation bot for the Leprechaun Protocol that uses viem for blockchain interactions. This bot automatically monitors the protocol for under-collateralized positions, assesses their profitability, and executes liquidations when profitable.
 
-Designed for low cost, low overhead and fast warm starts using Vercel Functions.
+Designed for low cost, low overhead and fast warm starts using Vercel Functions. Alternatively, for more control and better debugging, run locally, on your server, or any node-compatible environment.
 
 ![Leprechaun Protocol Liquidation Bot](preview.png)
+
+Redundancy-add and more accessible liquidation layer that adds onto Leprechaun's [liquidation-hook](https://github.com/leprechaun-dao/liquidation-hook) - for more state-of-the-art and DeFi-like liquidations use our hook!
 
 ## Features
 
@@ -23,7 +25,7 @@ Designed for low cost, low overhead and fast warm starts using Vercel Functions.
   - Waits for the transaction to be mined and verifies the success
 - 📊 **Logging**: Comprehensive logging of all operations
 - 🛡️ **Error Handling**: Robust error handling to ensure reliability
-- 🔄 **Batch Processing**: Process multiple liquidations in sequence
+- 🔄 **Batch Processing**: Process multiple liquidations concurrently
 - 📱 **Vercel Compatible**: Uses viem for simplicity and performance, compatible with Vercel functions
 - 🌐 **REST API**: Includes API endpoints for integration with other systems
 
